@@ -60,20 +60,20 @@ output "vnet_subnet_ids" {
 # BASTION PUBLIC IP (OPTIONAL)
 ############################
 
-# resource "azurerm_public_ip" "bastion_pip" {
-#   for_each = {
-#     for k, v in var.vnets_subnets :
-#     k => v if v.enable_bastion == true
-#   }
+resource "azurerm_public_ip" "bastion_pip" {
+  for_each = {
+    for k, v in var.vnets_subnets :
+    k => v if v.enable_bastion == true
+  }
 
-#   name                = "${each.key}-bastion-pip"
-#   location            = each.value.location
-#   resource_group_name = each.value.resource_group_name
-#   allocation_method   = "Static"
-#   sku                 = "Standard"
+  name                = "${each.key}-bastion-pip"
+  location            = each.value.location
+  resource_group_name = each.value.resource_group_name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 
-#   tags = var.tags
-# }
+  tags = var.tags
+}
 
 ############################
 # BASTION HOST

@@ -90,9 +90,7 @@ resource "azurerm_linux_virtual_machine" "vms" {
     azurerm_network_interface.nic[each.key].id
   ]
 
-  custom_data = each.value.userdata_script != null
-    ? base64encode(file("${path.root}/scripts/${each.value.userdata_script}"))
-    : null
+  custom_data = each.value.userdata_script != null ? base64encode(file("${path.root}/../scripts/${each.value.userdata_script}")) : null
 
   os_disk {
     caching              = "ReadWrite"
