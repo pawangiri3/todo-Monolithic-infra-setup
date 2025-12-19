@@ -95,3 +95,120 @@ servers_dbs = {
     dbs                            = ["todoappdb"]
   }
 }
+
+
+
+vnet_subnet_ids = {
+  vnet-main = {
+    subnet-app = "/subscriptions/xxx/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-main/subnets/subnet-app"
+  }
+}
+
+vms = {
+  vm-app-01 = {
+    resource_group_name = "rg-app"
+    location            = "Central India"
+    size                = "Standard_B2ms"
+
+    admin_username = "azureuser"
+    admin_password = "ChangeMe@123"
+
+    vnet_name   = "vnet-main"
+    subnet_name = "subnet-app"
+
+    enable_public_ip     = true
+    inbound_open_ports   = [22, 80]
+
+    source_image_reference = {
+      publisher = "Canonical"
+      offer     = "0001-com-ubuntu-server-jammy"
+      sku       = "22_04-lts"
+      version   = "latest"
+    }
+
+    userdata_script = "init.sh"
+  }
+}
+
+tags = {
+  environment = "dev"
+  owner       = "devops"
+}
+
+
+
+
+servers_dbs = {
+  sql-dev-01 = {
+    resource_group_name = "rg-dev"
+    location            = "Central India"
+
+    aad_admin_name      = "sql-admins"
+    aad_admin_object_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+    dbs = ["appdb", "authdb"]
+
+    create_private_endpoint = true
+    subnet_id               = "/subscriptions/xxx/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/private"
+  }
+}
+
+tags = {
+  environment = "dev"
+  owner       = "devops"
+}
+
+
+loadbalancers = {
+  app-lb = {
+    resource_group_name = "rg-app"
+    location            = "Central India"
+    sku                 = "Standard"
+    frontend_ip_configuration_name = "app-fe"
+  }
+}
+
+backend_pools = {
+  web-pool = {
+    lb_name     = "app-lb"
+    port        = 80
+    backend_vms = ["vm-app-01", "vm-app-02"]
+  }
+}
+
+nic_ids = {
+  vm-app-01 = "/subscriptions/xxx/.../networkInterfaces/vm-app-01-nic"
+  vm-app-02 = "/subscriptions/xxx/.../networkInterfaces/vm-app-02-nic"
+}
+
+tags = {
+  environment = "dev"
+  owner       = "devops"
+}
+
+
+vnets_subnets = {
+  vnet-main = {
+    resource_group_name = "rg-net"
+    location            = "Central India"
+    address_space       = ["10.0.0.0/16"]
+    enable_bastion      = true
+
+    subnets = {
+      AzureBastionSubnet = {
+        address_prefix = "10.0.0.0/26"
+      }
+      subnet-app = {
+        address_prefix = "10.0.1.0/24"
+      }
+      subnet-db = {
+        address_prefix = "10.0.2.0/24"
+      }
+    }
+  }
+}
+
+tags = {
+  environment = "dev"
+  owner       = "devops"
+}
