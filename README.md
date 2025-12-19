@@ -1,73 +1,167 @@
-# azure-todo-app-terraform 🚀
+# TODO Infra Monolithic Setup
 
-Welcome to azure-todo-app-terraform! This repository contains Terraform configurations to deploy a todo-app on the Azure cloud platform.
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Folder Structure 📁
+Terraform infrastructure repository to deploy the **TODO App** on **Microsoft Azure** using GitHub Actions and Azure CI/CD.  
+This project demonstrates a scalable, reusable, modular Terraform codebase with best practices for cloud infrastructure provisioning.
 
-```
-azure-todo-app-terraform/
-│
-├── modules/           # Contains reusable Terraform modules
-│   ├── <module1>/
-│   ├── <module2>/
-│   └── ...
-│
-├── scripts/           # Contains scripts for automation or deployment
-│   ├── <script1>.sh
-│   ├── <script2>.py
-│   └── ...
-│
-└── environment/       # Contains environment-specific Terraform configurations
-    ├── dev/
-    ├── prod/
-    └── ...
-```
+---
 
-## Getting Started 🏁
+## 🧠 Project Overview
 
-To get started with deploying the todo-app on Azure using Terraform, follow these steps:
+This repository contains Terraform configurations and automation to provision:
 
-1. **Clone the Repository**: 
-   ```
-   git clone https://github.com/devopsinsiders/azure-todo-app-terraform.git
-   ```
+- Virtual Network, Subnets, Bastion
+- Virtual Machines (Linux)
+- Load Balancer and Backend Pools
+- SQL Servers & Databases
+- Security Groups and Firewall Rules
+- CI/CD with GitHub Actions / Azure DevOps
+- Module-based architecture for reusability
 
-2. **Navigate to the Directory**:
-   ```
-   cd azure-todo-app-terraform
-   ```
+> All resources are managed using Infrastructure-as-Code (IaC) principles and follow Terraform best practices. :contentReference[oaicite:0]{index=0}
 
-3. **Set Up Azure Credentials**:
-   Ensure you have Azure credentials set up with appropriate permissions for Terraform to deploy resources.
+---
 
-4. **Customize Configuration**:
-   Modify the Terraform configurations (`*.tf` files) in the `environment/` directory as needed to match your requirements.
+## 🗂️ Repository Structure
 
-5. **Initialize Terraform**:
-   ```
-   terraform init
-   ```
+.
+├── .github/ # GitHub CI/CD workflows
+├── modules/ # Terraform reusable modules
+│ ├── network/
+│ ├── vm/
+│ ├── loadbalancer/
+│ ├── sql/
+│ └── bastion/
+├── scripts/ # Initialization / provisioning scripts
+├── environments/ # Environment specific configs
+│ ├── dev/
+│ └── prod/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── providers.tf
+├── terraform.tfvars
+├── backend.tf
+├── README.md # This file
+└── .gitignore
 
-6. **Preview Changes**:
-   ```
-   terraform plan
-   ```
 
-7. **Apply Changes**:
-   ```
-   terraform apply
-   ```
+---
 
-8. **Access Your Todo App**:
-   Once deployment is complete, access your todo-app on Azure.
+## 🚀 Getting Started
 
-## Contributing 🤝
+### 1. **Clone the Repository**
 
-We welcome contributions from the community! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
+```bash
+git clone https://github.com/pawangiri3/todo-Monolithic-infra-setup.git
+cd todo-Monolithic-infra-setup
 
-## License 📄
+2. Configure Azure Credentials
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-```
+Ensure you are authenticated with Azure CLI or Managed Identity:
 
-Feel free to use and customize this README.md file as needed for your repository!
+az login
+az account set --subscription "<subscription-id>"
+
+
+Avoid hardcoding sensitive credentials. Use AAD auth, environment variables, or GitHub secrets.
+
+3. Bootstrap Terraform
+terraform init
+
+4. Preview Infrastructure
+terraform plan -var-file="terraform.tfvars"
+
+5. Apply Configuration
+terraform apply -var-file="terraform.tfvars"
+
+⚙️ Configuration
+Terraform Backend (Remote State)
+
+Configure remote state in backend.tf using an Azure Storage Account. This avoids storing state locally.
+
+Variables
+
+All variables are defined in variables.tf. You can customize values by editing terraform.tfvars.
+
+📦 Modules
+
+Each component is modularized:
+
+Module	Purpose
+network	Virtual network + subnet setup
+vm	Linux virtual machines provisioning
+loadbalancer	Load balancer with backend pools
+sql	Azure SQL Server & Databases
+bastion	Bastion host provisioning
+
+Modules have input/output documentation and are reusable across environments. 
+HashiCorp Developer
+
+📁 Scripts
+
+Scripts in the scripts/ directory are used during VM provisioning or automation tasks. These are optional helpers and can be extended.
+
+📈 CI/CD Integration
+
+This repo includes GitHub Actions workflows to automatically plan and apply Terraform changes on push or pull request.
+
+Ensure you set the following secrets:
+
+Secret	Purpose
+AZURE_CLIENT_ID	Azure Service Principal
+AZURE_CLIENT_SECRET	Azure SP Secret
+AZURE_TENANT_ID	Azure Tenant ID
+AZURE_SUBSCRIPTION_ID	Subscription context
+ARM_ACCESS_KEY	Storage Account access for state
+📌 Outputs
+
+After apply, the following Terraform outputs provide key information:
+
+VM private & public IPs
+
+Load balancer public IP
+
+Database connection details
+
+Resource identifiers
+
+📚 Best Practices Included
+
+This Terraform repository follows recommended standards:
+
+✔ Modular structure
+✔ Remote state backend
+✔ Secure authentication
+✔ Variable validation
+✔ Meaningful outputs
+✔ Reusable modules
+✔ Clear naming conventions
+✔ Production-ready defaults 
+Spacelift
+
+🤝 Contributing
+
+We welcome contributions!
+Please fork the repository, create a feature branch and submit a pull request.
+
+📜 License
+
+This project is licensed under the MIT License – see the LICENSE file for details.
+
+🚀 About
+
+A Terraform repository to automate the deployment of the TODO application infrastructure using Azure cloud services and CI/CD pipelines.
+
+
+
+---
+
+## 📌 Notes
+
+✔ This README follows Terraform documentation recommendations: overview, usage, examples, and module explanations. :contentReference[oaicite:3]{index=3}  
+✔ You can enhance it further with invocation examples or architectural diagrams.  
+✔ Consider adding an `.terraform-docs.yml` and using **terraform-docs** to auto-generate inputs/outputs tables into the README. :contentReference[oaicite:4]{index=4}
+
+
