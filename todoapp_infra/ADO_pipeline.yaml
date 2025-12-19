@@ -1,0 +1,187 @@
+# =========================================================
+# Azure DevOps Multi-Stage Terraform Pipeline (Production)
+# ---------------------------------------------------------
+# ✔ Uses Self-Hosted Agent (VM)
+# ✔ Multi-stage: Validate → Plan → Manual Approval → Apply
+# ✔ Apply happens ONLY after human review
+# ✔ AzureRM v4 + AAD / Managed Identity ready
+# ✔ Enterprise / SRE-grade pipeline
+# =========================================================
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+# ---------------------------------------------------------
+# GLOBAL VARIABLES
+# ---------------------------------------------------------
+variables:
+  TF_VERSION: "1.6.6"
+  WORKING_DIR: "$(System.DefaultWorkingDirectory)"
+  ENVIRONMENT: "dev"
+
+# ---------------------------------------------------------
+# STAGE 1: VALIDATE & PLAN
+# ---------------------------------------------------------
+stages:
+- stage: Plan
+  displayName: "Terraform Validate & Plan"
+  jobs:
+  - job: TerraformPlan
+    displayName: "Terraform Plan Job"
+    pool:
+      name: SelfHosted-Linux   # 👈 Your self-hosted VM agent pool
+
+    steps:
+    # Checkout repo
+    - checkout: self
+
+    # Install Terraform (recommended even on self-hosted)
+    - task: TerraformInstaller@1
+      displayName: "Install Terraform"
+      inputs:
+        terraformVersion: $(TF_VERSION)
+
+    # Azure login via Service Connection
+    # Uses Managed Identity or SPN (no secrets in code)
+    - task: AzureCLI@2
+      displayName: "Azure Login"
+      inputs:
+        azureSubscription: "AZURE-SERVICE-CONNECTION"
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az account show
+
+    # Terraform Init (remote backend)
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Init"
+      inputs:
+        provider: azurerm
+        command: init
+        workingDirectory: $(WORKING_DIR)
+        backendServiceArm: "AZURE-SERVICE-CONNECTION"
+        backendAzureRmResourceGroupName: "tfstate-rg"
+        backendAzureRmStorageAccountName: "tfstatestorage"
+        backendAzureRmContainerName: "tfstate"
+        backendAzureRmKey: "$(ENVIRONMENT)/infra.tfstate"
+        backendAzureRmUseAzureADAuth: true
+
+    # Terraform Validate
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Validate"
+      inputs:
+        provider: azurerm
+        command: validate
+        workingDirectory: $(WORKING_DIR)
+
+    # Terraform Plan
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Plan"
+      inputs:
+        provider: azurerm
+        command: plan
+        workingDirectory: $(WORKING_DIR)
+        environmentServiceNameAzureRM: "AZURE-SERVICE-CONNECTION"
+        commandOptions: "-out=tfplan"
+
+    # Publish plan for review
+    - publish: $(WORKING_DIR)/tfplan
+      artifact: terraform-plan
+      displayName: "Publish Terraform Plan"
+
+# ---------------------------------------------------------
+# STAGE 2: MANUAL APPROVAL (REVIEW GATE)
+# ---------------------------------------------------------
+- stage: Approval
+  displayName: "Manual Review & Approval"
+  dependsOn: Plan
+  condition: succeeded()
+
+  jobs:
+  - job: ManualApproval
+    displayName: "Approval Required"
+    pool: server   # 👈 Runs on Azure DevOps server
+
+    steps:
+    - task: ManualValidation@0
+      displayName: "Review Terraform Plan"
+      inputs:
+        notifyUsers: |
+          pawangiri3@gmail.com
+        instructions: |
+          Please review the Terraform plan artifact.
+          
+          ✅ Verify:
+          - No unintended resource deletion
+          - No security misconfiguration
+          - Correct environment (prod)
+          
+          Approve to continue with APPLY.
+        onTimeout: reject
+        timeoutInMinutes: 1440   # 24 hours approval window
+
+# ---------------------------------------------------------
+# STAGE 3: APPLY (ONLY AFTER APPROVAL)
+# ---------------------------------------------------------
+- stage: Apply
+  displayName: "Terraform Apply"
+  dependsOn: Approval
+  condition: succeeded()
+
+  jobs:
+  - job: TerraformApply
+    displayName: "Terraform Apply Job"
+    pool:
+      name: SelfHosted-Linux   # 👈 Same self-hosted VM agent
+
+    steps:
+    - checkout: self
+
+    # Download approved plan
+    - download: current
+      artifact: terraform-plan
+      displayName: "Download Terraform Plan"
+
+    - task: TerraformInstaller@1
+      displayName: "Install Terraform"
+      inputs:
+        terraformVersion: $(TF_VERSION)
+
+    - task: AzureCLI@2
+      displayName: "Azure Login"
+      inputs:
+        azureSubscription: "AZURE-SERVICE-CONNECTION"
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az account show
+
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Init"
+      inputs:
+        provider: azurerm
+        command: init
+        workingDirectory: $(WORKING_DIR)
+        backendServiceArm: "AZURE-SERVICE-CONNECTION"
+        backendAzureRmResourceGroupName: "tfstate-rg"
+        backendAzureRmStorageAccountName: "tfstatestorage"
+        backendAzureRmContainerName: "tfstate"
+        backendAzureRmKey: "$(ENVIRONMENT)/infra.tfstate"
+        backendAzureRmUseAzureADAuth: true
+
+    # APPLY using reviewed plan only
+    - task: TerraformTaskV4@4
+      displayName: "Terraform Apply (Approved)"
+      inputs:
+        provider: azurerm
+        command: apply
+        workingDirectory: $(WORKING_DIR)
+        environmentServiceNameAzureRM: "AZURE-SERVICE-CONNECTION"
+        commandOptions: "-auto-approve tfplan"
