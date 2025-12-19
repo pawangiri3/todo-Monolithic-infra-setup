@@ -197,7 +197,3 @@ Terraform • Azure • CI/CD • Kubernetes
 
 ---
 
-> This repository represents **real-world production infrastructure**, not demo or sample code.
-
-```
-```
