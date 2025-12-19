@@ -31,8 +31,7 @@ variable "vnet_subnet_ids" {
 }
 
 variable "tags" {
-  type    = map(string)
-  default = {}
+  description = "Common tags for resources"
+  type        = map(string)
+  default     = {}
 }
-
-variable vm_name{}
