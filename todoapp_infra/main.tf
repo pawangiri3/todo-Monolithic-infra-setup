@@ -6,7 +6,7 @@ module "rgs" {
 module "networking" {
   depends_on    = [module.rgs]
   source        = "../modules/Networking"
-   vnets_subnets = var.vnets_subnets
+  vnets_subnets = var.vnets_subnets
   tags          = var.tags
 }
 
@@ -18,18 +18,20 @@ module "vms" {
   tags            = var.tags
 }
 
-# module "loadbalancers" {
-#   source = "./modules/loadbalancer"
+module "loadbalancers" {
+  depends_on    = [module.vms]
+  source        = "../modules/LoadBalancer"
 
-#   loadbalancers = var.loadbalancers
-#   backend_pools = var.backend_pools
-#   nic_ids       = var.nic_ids
-#   tags          = var.tags
-# }
+  loadbalancers = var.loadbalancers
+  backend_pools = var.backend_pools
+  nic_ids       = module.vms.vm_nic_ids
+  tags          = var.tags
+}
 
 module "database" {
   depends_on  = [module.rgs]
   source      = "../modules/Database"
+  sql_servers = var.sql_servers
   servers_dbs = var.servers_dbs
-  tags        = var.tags
+  # tags        = var.tags
 }

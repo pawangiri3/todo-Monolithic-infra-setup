@@ -1,14 +1,14 @@
 # Resource Groups
 rgs = {
   rg-todoapp = {
-    location = "eastus"
+    location = "westus2"
   }
 }
 
 # Virtual Networks and Subnets
 vnets_subnets = {
   vnet-todoapp = {
-    location            = "eastus"
+    location            = "westus2"
     resource_group_name = "rg-todoapp"
     address_space       = ["10.0.0.0/16"]
     enable_bastion      = false
@@ -27,7 +27,7 @@ vnets_subnets = {
 vms = {
   "frontendvm" = {
     resource_group_name = "rg-todoapp"
-    location            = "eastus"
+    location            = "westus2"
     vnet_name           = "vnet-todoapp"
     subnet_name         = "frontend-subnet"
     size                = "Standard_DS1_v2"
@@ -45,7 +45,7 @@ vms = {
   }
   "backendvm" = {
     resource_group_name = "rg-todoapp"
-    location            = "eastus"
+    location            = "westus2"
     vnet_name           = "vnet-todoapp"
     subnet_name         = "backend-subnet"
     size                = "Standard_DS1_v2"
@@ -66,7 +66,7 @@ vms = {
 # Load Balancers
 loadbalancers = {
   lb-todoapp = {
-    location                       = "eastus"
+    location                       = "westus2"
     resource_group_name            = "rg-todoapp"
     frontend_ip_configuration_name = "PublicIPAddress"
     sku                            = "Standard"
@@ -82,15 +82,29 @@ backend_pools = {
   }
 }
 
+# SQL Servers
+sql_servers = {
+  "todoappserversrv1" = {
+    name                    = "todoappserversrv1"
+    resource_group_name     = "rg-todoapp"
+    location                = "westus2"
+    version                 = "12.0"
+    administrator_login     = "sqladmin"
+    administrator_password  = "P@ssw01rd@123"
+    tags                    = { environment = "dev" }
+  }
+}
+
 # Database Servers
 servers_dbs = {
-  "devopsinssrv1" = {
-    resource_group_name     = "rg-todoapp"
-    location                = "eastus"
-    aad_admin_name          = "sql-admins"
-    aad_admin_object_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-    dbs                     = ["todoappdb"]
-    create_private_endpoint = false
+  "todoappdb" = {
+    name         = "todoappdb"
+    server       = "todoappserversrv1"
+    collation    = "SQL_Latin1_General_CP1_CI_AS"
+    license_type = "LicenseIncluded"
+    max_size_gb  = "32"
+    sku_name     = "Basic"
+    tags         = { environment = "dev" }
   }
 }
 

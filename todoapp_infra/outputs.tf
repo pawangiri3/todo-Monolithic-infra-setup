@@ -22,8 +22,8 @@ output "vm_ids" {
   value = module.vms.vm_ids
 }
 
-output "db_connection_strings" {
-  value = module.database.db_connection_strings
+output "databases" {
+  value = module.database.databases
 }
 
 
