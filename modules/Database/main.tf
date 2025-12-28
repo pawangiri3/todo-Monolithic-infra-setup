@@ -2,64 +2,59 @@
 # SQL SERVERS
 ############################
 
-resource "azurerm_mssql_server" "servers" {
-  for_each            = var.servers_dbs
-  name                = each.key
-  resource_group_name = each.value.resource_group_name
-  location            = each.value.location
+resource "azurerm_mssql_server" "this" {
+  for_each = var.sql_servers
 
-  version                      = "12.0"
-  public_network_access_enabled = false
-  minimum_tls_version           = "1.2"
+  name                         = each.value.name
+  resource_group_name          = each.value.resource_group_name
+  location                     = each.value.location
+  version                      = each.value.version
+  administrator_login          = each.value.administrator_login
+  administrator_login_password = each.value.administrator_password
 
-  tags = var.tags
+  tags = each.value.tags
 }
 
 ############################
-# AZURE AD ADMIN
+# SQL DB
 ############################
 
-resource "azurerm_mssql_server_active_directory_administrator" "aad_admin" {
-  for_each  = var.servers_dbs
-  server_id = azurerm_mssql_server.servers[each.key].id
-
-  login     = each.value.aad_admin_name
-  object_id = each.value.aad_admin_object_id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-}
-
-############################
-# SQL DATABASES
-############################
-
-resource "azurerm_mssql_database" "dbs" {
-  for_each = {
-    for db in local.databases :
-    "${db.server}-${db.name}" => db
-  }
+resource "azurerm_mssql_database" "this" {
+  for_each = var.servers_dbs
 
   name      = each.value.name
-  server_id = azurerm_mssql_server.servers[each.value.server].id
+  server_id = azurerm_mssql_server.this[each.value.server].id
 
-  sku_name = "Basic"
-  zone_redundant = false
+  collation    = each.value.collation
+  license_type = each.value.license_type
+  max_size_gb  = each.value.max_size_gb
+  sku_name     = each.value.sku_name
+
+  tags = try(each.value.tags, {})
+
+
 }
 
-
 ############################
-# OUTPUTS (SAFE)
+# OUTPUTS
 ############################
 
 output "sql_servers" {
+  description = "Map of server keys to fully qualified domain names"
   value = {
-    for k, v in azurerm_mssql_server.servers :
+    for k, v in azurerm_mssql_server.this :
     k => v.fully_qualified_domain_name
   }
 }
 
 output "databases" {
-  value = [
-    for db in local.databases :
-    "${db.server}/${db.name}"
-  ]
+  description = "Map of database keys to details"
+  value = {
+    for k, v in azurerm_mssql_database.this :
+    k => {
+      id        = v.id
+      name      = v.name
+      server_id = v.server_id
+    }
+  }
 }

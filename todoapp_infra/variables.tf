@@ -25,9 +25,16 @@ variable "backend_pools" {
   default     = {}
 }
 
+variable "sql_servers" {
+  description = "SQL servers configuration"
+  type        = any
+  default     = {}
+}
+
 variable "servers_dbs" {
   description = "Database servers configuration"
   type        = any
+  default     = {}
 }
 
 variable "tags" {

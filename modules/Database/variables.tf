@@ -1,42 +1,27 @@
-
-data "azurerm_client_config" "current" {}
-
-############################
-# VARIABLES
-############################
+variable "sql_servers" {
+	description = "Map of SQL server objects keyed by identifier. Each object must include `name`, `resource_group_name`, `location` and `administrator_password`."
+	type = map(object({
+		name                    = string
+		resource_group_name     = string
+		location                = string
+		version                 = string
+		administrator_login     = string
+		administrator_password  = string
+		tags                    = optional(map(string))
+	}))
+	default = {}
+}
 
 variable "servers_dbs" {
-  description = "SQL servers and databases configuration"
-  type = map(object({
-    resource_group_name = string
-    location            = string
-
-    aad_admin_name      = string
-    aad_admin_object_id = string
-
-    dbs = list(string)
-
-    create_private_endpoint = optional(bool, false)
-    subnet_id               = optional(string)
-  }))
-}
-
-variable "tags" {
-  type    = map(string)
-  default = {}
-}
-
-############################
-# LOCALS
-############################
-
-locals {
-  databases = flatten([
-    for server_name, server in var.servers_dbs : [
-      for db in server.dbs : {
-        server = server_name
-        name   = db
-      }
-    ]
-  ])
+	description = "Map of database objects keyed by identifier. Each object must include `name` and `server` (server key from var.sql_servers)."
+	type = map(object({
+		name         = string
+		server       = string
+		collation    = string
+		license_type = string
+		max_size_gb  = string
+		sku_name     = string
+		tags         = optional(map(string))
+	}))
+	default = {}
 }
