@@ -30,7 +30,7 @@ vms = {
     location            = "westus2"
     vnet_name           = "vnet-todoapp"
     subnet_name         = "frontend-subnet"
-    size                = "Standard_DS1_v2"
+    size                = "Standard_D2s_v3"
     admin_username      = "azureuser"
     admin_password      = "P@ssw01rd@123"
     userdata_script     = "install_nginx.sh"
@@ -48,7 +48,7 @@ vms = {
     location            = "westus2"
     vnet_name           = "vnet-todoapp"
     subnet_name         = "backend-subnet"
-    size                = "Standard_DS1_v2"
+    size                = "Standard_D2s_v3"
     admin_username      = "azureuser"
     admin_password      = "P@ssw01rd@123"
     userdata_script     = "install_python.sh"
@@ -85,13 +85,13 @@ backend_pools = {
 # SQL Servers
 sql_servers = {
   "todoappserversrv1" = {
-    name                    = "todoappserversrv1"
-    resource_group_name     = "rg-todoapp"
-    location                = "westus2"
-    version                 = "12.0"
-    administrator_login     = "sqladmin"
-    administrator_password  = "P@ssw01rd@123"
-    tags                    = { environment = "dev" }
+    name                   = "todoappserversrv1"
+    resource_group_name    = "rg-todoapp"
+    location               = "westus2"
+    version                = "12.0"
+    administrator_login    = "sqladmin"
+    administrator_password = "P@ssw01rd@123"
+    tags                   = { environment = "dev" }
   }
 }
 
