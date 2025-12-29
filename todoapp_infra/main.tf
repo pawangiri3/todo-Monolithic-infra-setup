@@ -19,8 +19,8 @@ module "vms" {
 }
 
 module "loadbalancers" {
-  depends_on    = [module.vms]
-  source        = "../modules/LoadBalancer"
+  depends_on = [module.vms]
+  source     = "../modules/LoadBalancer"
 
   loadbalancers = var.loadbalancers
   backend_pools = var.backend_pools

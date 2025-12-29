@@ -34,6 +34,7 @@ resource "azurerm_subnet" "subnets" {
     for s in local.subnet_map :
     "${s.vnet_name}-${s.subnet}" => s
   }
+  depends_on = [azurerm_virtual_network.vnets]
 
   name                 = each.value.subnet
   resource_group_name  = each.value.rg
