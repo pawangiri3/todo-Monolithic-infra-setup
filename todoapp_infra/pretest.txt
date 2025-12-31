@@ -1,0 +1,34 @@
+
+#####linux/bash  ke liye
+
+####rg create 
+az group create \
+  --name Do_not_delete_rg \
+  --location eastus
+
+
+az storage account create \
+  --name donotdelete2025 \
+  --resource-group Do_not_delete_rg \
+  --location eastus \
+  --sku Standard_LRS \
+  --kind StorageV2
+
+az storage container create \
+  --name fstate \
+  --account-name donotdelete2025
+
+###########Powersheeel
+
+az group create --name Do_not_delete_rg --location eastus
+
+az storage account create `
+  --name donotdelete2025 `
+  --resource-group Do_not_delete_rg `
+  --location eastus `
+  --sku Standard_LRS `
+  --kind StorageV2
+
+az storage container create `
+  --name tfstate `
+  --account-name donotdelete2025
